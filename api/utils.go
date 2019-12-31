@@ -1,4 +1,4 @@
-package wrapper
+package api
 
 import "net/url"
 

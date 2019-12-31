@@ -1,4 +1,4 @@
-package wrapper
+package api
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func GetExplorer(host string) (JormungandrExplorer, error) {
 	if err == nil && hostUrl != nil {
 		return jormungandrExplorerImpl{host: hostUrl}, nil
 	}
-	return nil, InvalidArgumentException{
+	return nil, invalidArgumentException{
 		MethodName:  "GetExplorer",
 		Expectation: fmt.Sprintf("You must enter a valid host URL, but it was '%v'.", host),
 	}
