@@ -1,6 +1,7 @@
 package api
 
 import (
+    "math/big"
     "net/url"
     "sort"
     "time"
@@ -29,6 +30,17 @@ func FilterLeaderLogsBefore(before time.Time, leaderAssignments []LeaderAssignme
     for i := range leaderAssignments {
         currentAssignment := leaderAssignments[i]
         if currentAssignment.ScheduleTime.After(before) {
+            filteredAssignments = append(filteredAssignments, currentAssignment)
+        }
+    }
+    return filteredAssignments
+}
+
+func FilterForLeaderLogsInEpoch(epoch *big.Int, leaderAssignments []LeaderAssignment) []LeaderAssignment {
+    var filteredAssignments []LeaderAssignment
+    for i := range leaderAssignments {
+        currentAssignment := leaderAssignments[i]
+        if currentAssignment.ScheduleBlockDate.GetEpoch().Cmp(epoch) == 0 {
             filteredAssignments = append(filteredAssignments, currentAssignment)
         }
     }

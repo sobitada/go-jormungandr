@@ -61,10 +61,11 @@ func transformJSONToNodeStatistic(nodeStatJSON nodeStatisticJSON) *NodeStatistic
 }
 
 type LeaderAssignment struct {
-    CreationTime  time.Time `json:"created_at_time"`
-    ScheduleTime  time.Time `json:"scheduled_at_time"`
-    FinishingTime time.Time `json:"finished_at_time"`
-    LeaderID      uint64    `json:"enclave_leader_id"`
+    CreationTime      time.Time              `json:"created_at_time"`
+    ScheduleTime      time.Time              `json:"scheduled_at_time"`
+    ScheduleBlockDate *cardano.PlainSlotDate `json:"scheduled_at_date"`
+    FinishingTime     time.Time              `json:"finished_at_time"`
+    LeaderID          uint64                 `json:"enclave_leader_id"`
 }
 
 type LeaderCertificate struct {
