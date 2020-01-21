@@ -7,24 +7,32 @@ import (
     "io/ioutil"
     "net/http"
     "net/url"
+    "time"
 )
 
 const DefaultAPIVersion string = "v0"
 
 type JormungandrAPI struct {
-    url *url.URL
+    url    *url.URL
+    client *http.Client
 }
 
 // gets an API instance, which is located at the given
 // host URL. The host URL must not include the API path,
 // but simply the blank host URL of the jormungandr API
 // endpoint e.g. "127.0.0.1:3101".
-func GetAPIFromHost(host string) (*JormungandrAPI, error) {
+func GetAPIFromHost(host string, timeout time.Duration) (*JormungandrAPI, error) {
+    var client *http.Client
+    if timeout <= 0 {
+        client = &http.Client{}
+    } else {
+        client = &http.Client{Timeout: timeout}
+    }
     hostURL, err := url.Parse(host)
     if err == nil && hostURL != nil {
         hostURL, err = combine(hostURL, fmt.Sprintf("/api/%s/", DefaultAPIVersion))
         if err == nil {
-            return &JormungandrAPI{url: hostURL}, nil
+            return &JormungandrAPI{url: hostURL, client: client}, nil
         }
     }
     return nil, invalidArgument{
@@ -34,8 +42,14 @@ func GetAPIFromHost(host string) (*JormungandrAPI, error) {
 }
 
 // gets an API instance, which can be found at the given URL.
-func GetAPIFromURL(url *url.URL) *JormungandrAPI {
-    return &JormungandrAPI{url: url}
+func GetAPIFromURL(url *url.URL, timeout time.Duration) *JormungandrAPI {
+    var client *http.Client
+    if timeout <= 0 {
+        client = &http.Client{}
+    } else {
+        client = &http.Client{Timeout: timeout}
+    }
+    return &JormungandrAPI{url: url, client: client}
 }
 
 // gets the node statistics of the jormungandr node, the second
@@ -44,7 +58,7 @@ func GetAPIFromURL(url *url.URL) *JormungandrAPI {
 func (api *JormungandrAPI) GetNodeStatistics() (*NodeStatistic, bool, error) {
     apiURL, err := combine(api.url, "./node/stats")
     if err == nil {
-        var response, err = http.Get(apiURL.String())
+        var response, err = api.client.Get(apiURL.String())
         if err == nil {
             if response.StatusCode == 200 {
                 data, parseErr := ioutil.ReadAll(response.Body)
@@ -73,7 +87,7 @@ func (api *JormungandrAPI) GetNodeStatistics() (*NodeStatistic, bool, error) {
 func (api *JormungandrAPI) GetRegisteredLeaders() ([]uint64, error) {
     var apiURL, err = combine(api.url, "./leaders")
     if err == nil {
-        var response, err = http.Get(apiURL.String())
+        var response, err = api.client.Get(apiURL.String())
         if err == nil {
             if response.StatusCode == 200 {
                 var data, parseErr = ioutil.ReadAll(response.Body)
@@ -84,6 +98,7 @@ func (api *JormungandrAPI) GetRegisteredLeaders() ([]uint64, error) {
                         return response, nil
                     }
                 }
+                return nil, parseErr
             }
         }
     }
@@ -95,10 +110,9 @@ func (api *JormungandrAPI) GetRegisteredLeaders() ([]uint64, error) {
 func (api *JormungandrAPI) RemoveRegisteredLeader(leaderID uint64) (bool, error) {
     var apiURL, err = combine(api.url, fmt.Sprintf("./leaders/%v", leaderID))
     if err == nil {
-        client := &http.Client{}
         var request, err = http.NewRequest(http.MethodDelete, apiURL.String(), nil)
         if err == nil {
-            var response, err = client.Do(request)
+            var response, err = api.client.Do(request)
             if err == nil {
                 if response.StatusCode == 200 {
                     return true, nil
@@ -123,7 +137,7 @@ func (api *JormungandrAPI) PostLeader(leaderCertificate LeaderCertificate) (uint
     if err == nil {
         certJSONData, err := CertToJSON(leaderCertificate)
         if err == nil {
-            response, err := http.Post(apiURL.String(), "application/json", bytes.NewReader(certJSONData))
+            response, err := api.client.Post(apiURL.String(), "application/json", bytes.NewReader(certJSONData))
             if err == nil {
                 responseData, err := ioutil.ReadAll(response.Body)
                 if err == nil {
@@ -147,7 +161,7 @@ func (api *JormungandrAPI) PostLeader(leaderCertificate LeaderCertificate) (uint
 func (api *JormungandrAPI) GetLeadersSchedule() ([]LeaderAssignment, error) {
     apiURL, err := combine(api.url, "./leaders/logs")
     if err == nil {
-        var response, err = http.Get(apiURL.String())
+        var response, err = api.client.Get(apiURL.String())
         if err == nil {
             if response.StatusCode == 200 {
                 var data, parseErr = ioutil.ReadAll(response.Body)
@@ -169,7 +183,7 @@ func (api *JormungandrAPI) GetLeadersSchedule() ([]LeaderAssignment, error) {
 func (api *JormungandrAPI) Shutdown() error {
     apiURL, err := combine(api.url, "./shutdown")
     if err == nil {
-        var response, err = http.Get(apiURL.String())
+        var response, err = api.client.Get(apiURL.String())
         if err == nil {
             if response.StatusCode == 200 {
                 return nil //success
