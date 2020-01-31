@@ -17,6 +17,7 @@ func combine(base *url.URL, path string) (*url.URL, error) {
     return nil, err
 }
 
+// sort the leaders logs the by the scheduled time.
 func SortLeaderLogsByScheduleTime(leaderAssignments []LeaderAssignment) []LeaderAssignment {
     sortedAssignment := leaderAssignments[:]
     sort.Slice(sortedAssignment, func(i, j int) bool {
@@ -25,6 +26,7 @@ func SortLeaderLogsByScheduleTime(leaderAssignments []LeaderAssignment) []Leader
     return sortedAssignment
 }
 
+//
 func FilterLeaderLogsBefore(before time.Time, leaderAssignments []LeaderAssignment) []LeaderAssignment {
     var filteredAssignments []LeaderAssignment
     for i := range leaderAssignments {
@@ -36,11 +38,25 @@ func FilterLeaderLogsBefore(before time.Time, leaderAssignments []LeaderAssignme
     return filteredAssignments
 }
 
-func FilterForLeaderLogsInEpoch(epoch *big.Int, leaderAssignments []LeaderAssignment) []LeaderAssignment {
-    var filteredAssignments []LeaderAssignment
+// gets all the leader assignments in the given epoch and ignores
+// all the other assignments.
+func GetLeaderLogsInEpoch(epoch *big.Int, leaderAssignments []LeaderAssignment) []LeaderAssignment {
+    filteredAssignments := make([]LeaderAssignment, 0)
     for i := range leaderAssignments {
         currentAssignment := leaderAssignments[i]
         if currentAssignment.ScheduleBlockDate.GetEpoch().Cmp(epoch) == 0 {
+            filteredAssignments = append(filteredAssignments, currentAssignment)
+        }
+    }
+    return filteredAssignments
+}
+
+// gets all the leader assignments for the leader with the given ID.
+func GetLeaderLogsOfLeader(leaderID uint64, leaderAssignments []LeaderAssignment) []LeaderAssignment {
+    filteredAssignments := make([]LeaderAssignment, 0)
+    for i := range leaderAssignments {
+        currentAssignment := leaderAssignments[i]
+        if currentAssignment.leaderID == leaderAssignments[i].LeaderID {
             filteredAssignments = append(filteredAssignments, currentAssignment)
         }
     }
