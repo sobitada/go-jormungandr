@@ -56,7 +56,7 @@ func GetLeaderLogsOfLeader(leaderID uint64, leaderAssignments []LeaderAssignment
     filteredAssignments := make([]LeaderAssignment, 0)
     for i := range leaderAssignments {
         currentAssignment := leaderAssignments[i]
-        if currentAssignment.leaderID == leaderAssignments[i].LeaderID {
+        if leaderID == currentAssignment.LeaderID {
             filteredAssignments = append(filteredAssignments, currentAssignment)
         }
     }
