@@ -1,9 +1,7 @@
 package api
 
 import (
-    "encoding/json"
     "github.com/sobitada/go-cardano"
-    "gopkg.in/yaml.v2"
     "math/big"
     "time"
 )
@@ -19,10 +17,14 @@ type nodeStatisticJSON struct {
     LastBlockDate        *cardano.PlainSlotDate `json:"lastBlockDate"`
     LastBlockFees        *big.Int               `json:"lastBlockFees"`
     LastBlockHash        string                 `json:"lastBlockHash"`
-    LastBlockHeight      uint64                 `json:"lastBlockHeight,string"` //TODO: needs to be fixed eventually.
+    LastBlockHeight      uint64                 `json:"lastBlockHeight,string"`
     LastBlockSum         *big.Int               `json:"lastBlockSum"`
     LastBlockTime        time.Time              `json:"lastBlockTime"`
     LastBlockTx          *big.Int               `json:"lastBlockTx"`
+
+    PeerAvailableCount   *uint64 `json:"peerAvailableCnt"`
+    PeerQuarantinedCount *uint64 `json:"peerQuarantinedCnt"`
+    PeerUnreachableCnt   *uint64 `json:"peerUnreachableCnt"`
 }
 
 type NodeStatistic struct {
@@ -40,6 +42,10 @@ type NodeStatistic struct {
     LastBlockSum         *big.Int
     LastBlockTime        time.Time
     LastBlockTx          *big.Int
+
+    PeerAvailableCount   *uint64
+    PeerQuarantinedCount *uint64
+    PeerUnreachableCnt   *uint64
 }
 
 func transformJSONToNodeStatistic(nodeStatJSON nodeStatisticJSON) *NodeStatistic {
@@ -57,6 +63,9 @@ func transformJSONToNodeStatistic(nodeStatJSON nodeStatisticJSON) *NodeStatistic
         LastBlockSum:         nodeStatJSON.LastBlockSum,
         LastBlockTime:        nodeStatJSON.LastBlockTime,
         LastBlockTx:          nodeStatJSON.LastBlockTx,
+        PeerAvailableCount:   nodeStatJSON.PeerAvailableCount,
+        PeerQuarantinedCount: nodeStatJSON.PeerQuarantinedCount,
+        PeerUnreachableCnt:   nodeStatJSON.PeerUnreachableCnt,
     }
 }
 
@@ -74,25 +83,4 @@ type LeaderCertificate struct {
         VrfKey string `yaml:"vrf_key"`
         NodeID string `yaml:"node_id"`
     } `yaml:"genesis"`
-}
-
-type leaderCertificateJSON struct {
-    Genesis leaderCertificateJSONGenesis `json:"genesis"`
-}
-
-type leaderCertificateJSONGenesis struct {
-    SigKey string `json:"sig_key"`
-    VrfKey string `json:"vrf_key"`
-    NodeID string `json:"node_id"`
-}
-
-func ReadLeaderCertificate(data []byte) (LeaderCertificate, error) {
-    var leaderCert LeaderCertificate
-    err := yaml.Unmarshal(data, &leaderCert)
-    return leaderCert, err
-}
-
-func CertToJSON(certificate LeaderCertificate) ([]byte, error) {
-    leaderCertificate := leaderCertificateJSON{Genesis: leaderCertificateJSONGenesis{SigKey: certificate.Genesis.SigKey, VrfKey: certificate.Genesis.VrfKey, NodeID: certificate.Genesis.NodeID}}
-    return json.Marshal(leaderCertificate)
 }

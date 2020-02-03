@@ -135,7 +135,7 @@ func (api *JormungandrAPI) RemoveRegisteredLeader(leaderID uint64) (bool, error)
 func (api *JormungandrAPI) PostLeader(leaderCertificate LeaderCertificate) (uint64, error) {
     var apiURL, err = combine(api.url, fmt.Sprintf("./leaders"))
     if err == nil {
-        certJSONData, err := CertToJSON(leaderCertificate)
+        certJSONData, err := certificateToJSON(leaderCertificate)
         if err == nil {
             response, err := api.client.Post(apiURL.String(), "application/json", bytes.NewReader(certJSONData))
             if err == nil {

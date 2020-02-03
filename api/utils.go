@@ -17,7 +17,7 @@ func combine(base *url.URL, path string) (*url.URL, error) {
     return nil, err
 }
 
-// sort the leaders logs the by the scheduled time.
+// sort the leaders logs by the scheduled time.
 func SortLeaderLogsByScheduleTime(leaderAssignments []LeaderAssignment) []LeaderAssignment {
     sortedAssignment := leaderAssignments[:]
     sort.Slice(sortedAssignment, func(i, j int) bool {
@@ -26,7 +26,7 @@ func SortLeaderLogsByScheduleTime(leaderAssignments []LeaderAssignment) []Leader
     return sortedAssignment
 }
 
-//
+// returns only a list of the leader assignments that are strictly after the given date.
 func FilterLeaderLogsBefore(before time.Time, leaderAssignments []LeaderAssignment) []LeaderAssignment {
     var filteredAssignments []LeaderAssignment
     for i := range leaderAssignments {
